@@ -1,0 +1,31 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def simulate_race_outcome(iterations=10000):
+    """
+    Runs a Monte Carlo simulation for tyre degradation uncertainty.
+    """
+    # Parameters: Mean degradation rate, standard deviation (noise)
+    mean_deg = 0.12
+    sigma = 0.03 
+    
+    # Generate 10,000 potential race scenarios
+    scenarios = np.random.normal(mean_deg, sigma, iterations)
+    
+    # Calculate lap time drop-off based on these random scenarios
+    # Total time = Base Time + (Degradation * Laps)
+    total_race_times = 90 + (scenarios * 20)
+    
+    return total_race_times
+
+# Run Simulation
+outcomes = simulate_race_outcome()
+
+# Plotting the 'F1 Standard' visual
+plt.figure(figsize=(10, 6))
+plt.hist(outcomes, bins=50, color='crimson', alpha=0.7, edgecolor='black')
+plt.title('Monte Carlo: Probability of Race Stint Performance', fontsize=14)
+plt.xlabel('Total Stint Time (seconds)', fontsize=12)
+plt.ylabel('Frequency of Outcome', fontsize=12)
+plt.grid(axis='y', linestyle='--', alpha=0.5)
+plt.show()
