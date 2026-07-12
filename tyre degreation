@@ -1,0 +1,35 @@
+import numpy as np
+import pandas as pd
+
+def calculate_strategy(track_temp, tire_deg_factor, stint_length=20):
+    """
+    Models the lap time increase based on tire degradation and track temperature.
+    """
+    # Creating an array of laps for our stint. 
+    # Just setting up the range to map the performance drop-off per lap.
+    laps = np.arange(1, stint_length + 1)
+    
+    # Base lap time is 90s. 
+    # The degradation calculation adds a penalty that gets worse over time. 
+    # The '(1 + track_temp * 0.5)' part is my way of modeling heat soak—
+    # basically, higher temps make the rubber break down faster.
+    lap_times = 90 + (tire_deg_factor * laps * (1 + track_temp * 0.5))
+    
+    return pd.DataFrame({'Lap': laps, 'LapTime': lap_times})
+
+# Hard compound (durable, lower performance) vs Soft (high grip, high wear)
+# I'm using a temp factor of 0.8 to simulate a hot track, which puts 
+# extra stress on the rubber.
+hard_stint = calculate_strategy(track_temp=0.8, tire_deg_factor=0.05)
+soft_stint = calculate_strategy(track_temp=0.8, tire_deg_factor=0.15)
+
+# Finding the crossover point. This is the moment the Soft tyre's performance 
+# falls below the Hard compound's best lap time. 
+# This is basically identifying the end of our optimal window for the Softs.
+crossover = soft_stint[soft_stint['LapTime'] > hard_stint['LapTime'].min()]
+
+# Check if we actually found a crossover point before printing
+if not crossover.empty:
+    print(f"Optimal pit stop window identified at Lap: {crossover.iloc[0]['Lap']}")
+else:
+    print("The Soft compound remained competitive throughout the entire stint.")
