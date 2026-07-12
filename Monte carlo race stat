@@ -1,31 +1,40 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def simulate_race_outcome(iterations=10000):
+def run_monte_carlo(iterations=10000):
     """
-    Runs a Monte Carlo simulation for tyre degradation uncertainty.
+    Simulates race stint performance using Monte Carlo methods to account 
+    for real-world variables like tyre degradation and traffic.
     """
-    # Parameters: Mean degradation rate, standard deviation (noise)
-    mean_deg = 0.12
-    sigma = 0.03 
+    # The tyre deg model. I'm using a normal distribution here because 
+    # track surface temp and traffic make wear pretty unpredictable.
+    # Using 10k iterations to get a good spread of results—I want to see
+    # where the 'worst-case' strategy puts us compared to the 'ideal'.
+    mean_deg = 0.12  
+    sigma = 0.03     
     
-    # Generate 10,000 potential race scenarios
-    scenarios = np.random.normal(mean_deg, sigma, iterations)
+    # We generate a large sample size (10k iterations) to ensure the 
+    # statistical spread is reliable, helping us see the probability 
+    # distribution of our total stint time.
+    stint_variations = np.random.normal(mean_deg, sigma, iterations)
     
-    # Calculate lap time drop-off based on these random scenarios
-    # Total time = Base Time + (Degradation * Laps)
-    total_race_times = 90 + (scenarios * 20)
+    # Storing the results. The goal is to figure out the 'tyre cliff'—
+    # that point in the race where we lose more time on old rubber 
+    # than we'd gain by pitting for a fresh set.
+    total_race_times = 90 + (stint_variations * 20)
     
     return total_race_times
 
-# Run Simulation
-outcomes = simulate_race_outcome()
+# Run the simulation
+outcomes = run_monte_carlo()
 
-# Plotting the 'F1 Standard' visual
+# Visualization
 plt.figure(figsize=(10, 6))
-plt.hist(outcomes, bins=50, color='crimson', alpha=0.7, edgecolor='black')
-plt.title('Monte Carlo: Probability of Race Stint Performance', fontsize=14)
+plt.hist(outcomes, bins=50, color='royalblue', alpha=0.7, edgecolor='black')
+plt.title('Monte Carlo: Probability Distribution of Stint Time', fontsize=14)
 plt.xlabel('Total Stint Time (seconds)', fontsize=12)
 plt.ylabel('Frequency of Outcome', fontsize=12)
+plt.grid(axis='y', linestyle='--', alpha=0.5)
+plt.show()
 plt.grid(axis='y', linestyle='--', alpha=0.5)
 plt.show()
