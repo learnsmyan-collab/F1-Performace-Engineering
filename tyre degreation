@@ -1,35 +1,66 @@
+"""
+Project: Motorsport Compound Crossover & Pit Strategy Engine
+Author: Smyan Aggarwal
+Notes: Models lap time degradation curves for different tire compounds 
+       under thermal stress to determine optimal pit window crossover points.
+"""
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-def calculate_strategy(track_temp, tire_deg_factor, stint_length=20):
-    """
-    Models the lap time increase based on tire degradation and track temperature.
-    """
-    # Creating an array of laps for our stint. 
-    # Just setting up the range to map the performance drop-off per lap.
-    laps = np.arange(1, stint_length + 1)
+class CompoundStrategyAnalyzer:
+    def __init__(self, track_temp: float = 0.8, stint_length: int = 20):
+        self.track_temp = track_temp
+        self.stint_length = stint_length
+
+    def calculate_stint(self, tire_deg_factor: float) -> pd.DataFrame:
+        laps = np.arange(1, self.stint_length + 1)
+        # degradation penalty scales with lap count and thermal heat soak factor
+        lap_times = 90.0 + (tire_deg_factor * laps * (1 + self.track_temp * 0.5))
+        return pd.DataFrame({'Lap': laps, 'LapTime': lap_times})
+
+    def plot_strategy_comparison(self, hard_df: pd.DataFrame, soft_df: pd.DataFrame, crossover_lap: int, filename: str = "compound_crossover.png") -> None:
+        plt.figure(figsize=(7, 4))
+        plt.plot(hard_df['Lap'], hard_df['LapTime'], label='Hard Compound', color='#337ab7', linewidth=2)
+        plt.plot(soft_df['Lap'], soft_df['LapTime'], label='Soft Compound', color='#d9534f', linewidth=2)
+        
+        if crossover_lap:
+            plt.axvline(crossover_lap, color='orange', linestyle='--', linewidth=1.5, label=f'Crossover: Lap {crossover_lap}')
+
+        plt.title('Tyre Degradation Crossover Analysis', fontsize=10, fontweight='bold')
+        plt.xlabel('Stint Lap', fontsize=9)
+        plt.ylabel('Lap Time (Seconds)', fontsize=9)
+        plt.grid(True, linestyle=':', alpha=0.6)
+        plt.legend(loc='upper left', fontsize=8)
+        plt.tight_layout()
+        
+        plt.savefig(filename, dpi=300)
+        plt.close()
+
+def main():
+    print("Running compound strategy optimization...")
     
-    # Base lap time is 90s. 
-    # The degradation calculation adds a penalty that gets worse over time. 
-    # The '(1 + track_temp * 0.5)' part is my way of modeling heat soak—
-    # basically, higher temps make the rubber break down faster.
-    lap_times = 90 + (tire_deg_factor * laps * (1 + track_temp * 0.5))
+    analyzer = CompoundStrategyAnalyzer(track_temp=0.8, stint_length=20)
     
-    return pd.DataFrame({'Lap': laps, 'LapTime': lap_times})
+    # Hard compound = durable/low deg, Soft = high grip/high deg
+    hard_stint = analyzer.calculate_stint(tire_deg_factor=0.05)
+    soft_stint = analyzer.calculate_stint(tire_deg_factor=0.15)
+    
+    # Find crossover point where soft performance drops below hard baseline
+    crossover = soft_stint[soft_stint['LapTime'] > hard_stint['LapTime'].min()]
+    crossover_lap = int(crossover.iloc[0]['Lap']) if not crossover.empty else None
 
-# Hard compound (durable, lower performance) vs Soft (high grip, high wear)
-# I'm using a temp factor of 0.8 to simulate a hot track, which puts 
-# extra stress on the rubber.
-hard_stint = calculate_strategy(track_temp=0.8, tire_deg_factor=0.05)
-soft_stint = calculate_strategy(track_temp=0.8, tire_deg_factor=0.15)
+    if crossover_lap:
+        print(f"\n--- Strategy Output ---")
+        print(f"Optimal pit window crossover identified at Lap: {crossover_lap}")
+    else:
+        print("\n--- Strategy Output ---")
+        print("Soft compound maintained performance advantage across stint.")
 
-# Finding the crossover point. This is the moment the Soft tyre's performance 
-# falls below the Hard compound's best lap time. 
-# This is basically identifying the end of our optimal window for the Softs.
-crossover = soft_stint[soft_stint['LapTime'] > hard_stint['LapTime'].min()]
+    # Generate the visual graphic for the PDF portfolio
+    analyzer.plot_strategy_comparison(hard_stint, soft_stint, crossover_lap)
+    print("Exported 'compound_crossover.png' successfully.")
 
-# Check if we actually found a crossover point before printing
-if not crossover.empty:
-    print(f"Optimal pit stop window identified at Lap: {crossover.iloc[0]['Lap']}")
-else:
-    print("The Soft compound remained competitive throughout the entire stint.")
+if __name__ == "__main__":
+    main()
