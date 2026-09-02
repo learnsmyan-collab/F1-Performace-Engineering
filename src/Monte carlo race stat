@@ -1,0 +1,56 @@
+# monte carlo stint risk model - track strategy spread
+# author: smyan aggarwal
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+class StintRiskModel:
+    def __init__(self, runs=10000, base_lap=90.0, laps=20):
+        self.runs = runs
+        self.base_lap = base_lap
+        self.laps = laps
+
+    def run_sim(self) -> np.ndarray:
+        # traffic & temp make degradation messy, use normal dist
+        mean_deg = 0.12
+        sigma = 0.03
+        
+        deg_samples = np.random.normal(mean_deg, sigma, self.runs)
+        
+        # non-linear wear scaling over stint distance
+        stint_times = (self.base_lap * self.laps) + (deg_samples * (self.laps ** 1.1))
+        return stint_times
+
+    def plot_spread(self, outcomes: np.ndarray):
+        plt.figure(figsize=(7, 4))
+        plt.hist(outcomes, bins=50, color='#1f77b4', edgecolor='black', alpha=0.85, linewidth=0.6)
+        
+        p50 = np.median(outcomes)
+        p90 = np.percentile(outcomes, 90)
+        
+        plt.axvline(p50, color='forestgreen', linestyle='--', linewidth=1.5, label=f'P50 Median: {p50:.1f}s')
+        plt.axvline(p90, color='crimson', linestyle='--', linewidth=1.5, label=f'P90 Risk Line: {p90:.1f}s')
+
+        plt.title('Monte Carlo: Stint Duration & Traffic Risk Spread', fontsize=10, fontweight='bold')
+        plt.ylabel('Frequency', fontsize=9)
+        plt.xlabel('Total Stint Time (Seconds)', fontsize=9)
+        plt.grid(axis='y', linestyle=':', alpha=0.6)
+        plt.legend(loc='upper right', fontsize=8)
+        plt.tight_layout()
+        
+        plt.savefig("monte_carlo_stint.png", dpi=300)
+        plt.close()
+
+if __name__ == "__main__":
+    print("running stint simulation model...")
+    
+    model = StintRiskModel()
+    results = model.run_sim()
+    
+    print("\n--- stint analysis summary ---")
+    print(f"iterations: {model.runs:,}")
+    print(f"median time (p50): {np.median(results):.2f}s")
+    print(f"worst-case (p90): {np.percentile(results, 90):.2f}s")
+
+    model.plot_spread(results)
+    print("generated 'monte_carlo_stint.png' successfully.")
