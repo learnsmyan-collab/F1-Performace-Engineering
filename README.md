@@ -3,10 +3,10 @@
 python toolkit for simulating f1 race strategy, compound degradation crossovers, and monte carlo traffic/wear risk spreads. designed to evaluate pit windows and stint performance profiles.
 
 ## what's in here
-- `tire_strategy.py`: models linear wear and exponential thermal degradation for hard vs. soft compounds, automatically calculating the exact pit window crossover lap and generating a comparison plot (`compound_crossover.png`).
-- [Tire Strategy Degradation ][output/compound_crossover.png]
-- `monte_carlo_stint.py`: runs 10,000-iteration probabilistic simulations over a stint to map p50 median expectations against p90 worst-case traffic/wear risk lines (`monte_carlo_stint.png`).
-- [Tire Strategy Stint ][output/monte_carlo_stint.png]
+- tire_strategy.py: models linear wear and exponential thermal degradation for hard vs. soft compounds, automatically calculating the exact pit window crossover lap and generating a comparison plot 
+- [Tire Strategy Degradation ](output/compound_crossover.png)
+- monte_carlo_stint.py: runs 10,000-iteration probabilistic simulations over a stint to map p50 median expectations against p90 worst-case traffic/wear risk lines 
+- [Tire Strategy Stint ](output/monte_carlo_stint.png)
 
 ## governing equations
 ### 1. tire degradation & crossover model
