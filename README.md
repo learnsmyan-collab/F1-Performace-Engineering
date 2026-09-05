@@ -8,7 +8,7 @@ python toolkit for simulating f1 race strategy, compound degradation crossovers,
 ![Compound Crossover](output/compound_crossover.png)
 
 ### monte carlo stint risk spread
-![Monte Carlo Stint](outpuy/monte_carlo_stint.png)
+![Monte Carlo Stint](output/monte_carlo_stint.png)
 
 ## what's in here
 - `tire_strategy.py`: models linear wear and exponential thermal degradation for hard vs. soft compounds, automatically calculating the exact pit window crossover lap and generating a comparison plot.
