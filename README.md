@@ -6,7 +6,7 @@ python toolkit for simulating f1 race strategy, compound degradation crossovers,
 - tire_strategy.py: models linear wear and exponential thermal degradation for hard vs. soft compounds, automatically calculating the exact pit window crossover lap and generating a comparison plot 
 - [Tire Strategy Degradation ](output/compound_crossover.png)
 - monte_carlo_stint.py: runs 10,000-iteration probabilistic simulations over a stint to map p50 median expectations against p90 worst-case traffic/wear risk lines 
-- [Tire Strategy Stint ](output/monte_carlo_stint.png)
+
 
 ## governing equations
 ### 1. tire degradation & crossover model
@@ -16,7 +16,7 @@ lap times incorporate base pace, linear mechanical wear, and non-linear thermal 
 ### 2. monte carlo stint risk spread
 stint variations are sampled from a normal distribution and scaled non-linearly over distance:
 - $\text{StintTime} = (\text{base\_lap} \cdot \text{laps}) + (\text{deg\_samples} \cdot \text{laps}^{1.1})$
-
+- [Tire Strategy Stint](output/monte_carlo_stint.png)
 ## quick setup
 1. make sure you have dependencies installed:
    ```bash
