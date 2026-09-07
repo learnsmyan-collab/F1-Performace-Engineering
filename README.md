@@ -18,8 +18,8 @@ Runs 10,000-iteration probabilistic simulations over a stint to map p50 median e
 
 ## 📂 Repository Layout & Core Modules
 
-* **tire_strategy.py**: Models linear wear and exponential thermal degradation for hard vs. soft compounds, automatically calculating the exact pit window crossover lap.
-* **monte_carlo_stint.py**: Executes 10,000-iteration stochastic simulations over a race stint to map median versus p90 worst-case risk distributions.
+* tire_strategy.py: Models linear wear and exponential thermal degradation for hard vs. soft compounds, automatically calculating the exact pit window crossover lap.
+* monte_carlo_stint.py: Executes 10,000-iteration stochastic simulations over a race stint to map median versus p90 worst-case risk distributions.
 
 ---
 
