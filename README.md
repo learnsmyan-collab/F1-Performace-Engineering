@@ -8,11 +8,11 @@ An advanced race strategy analytics toolkit featuring a **Compound Degradation &
 
 ### 1. Compound Degradation & Pit Strategy Crossover (`tire_strategy.py`)
 Models linear wear and exponential thermal degradation for hard vs. soft compounds, automatically identifying the crossover lap.
-![Tire Strategy Crossover Dashboard](outputs/compound_crossover.png)
+![Tire Strategy Crossover Dashboard](output/compound_crossover.png)
 
 ### 2. Monte Carlo Stint Risk Spread (`monte_carlo_stint.py`)
 Runs 10,000-iteration probabilistic simulations over a stint to map p50 median expectations against p90 worst-case traffic and wear risk boundaries.
-![Monte Carlo Risk Spread Dashboard](outputs/monte_carlo_stint.png)
+![Monte Carlo Risk Spread Dashboard](output/monte_carlo_stint.png)
 
 ---
 
