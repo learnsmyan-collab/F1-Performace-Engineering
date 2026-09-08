@@ -1,143 +1,50 @@
-# 🏎️ Motorsport Analytics: Pit Strategy & Stint Risk Models
- 
-Two focused, tested Python simulations for race strategy analysis:
- 
-1. **`tire_strategy.py`** — models per-lap pace for two tire compounds and
-   finds the lap that *minimizes total race time* once a real pit-stop
-   time loss is priced in — not just the pace crossover.
-2. **`stint_risk_model.py`** — a genuine lap-by-lap Monte Carlo simulation
-   combining tire-wear noise with independently modeled traffic incidents,
-   fully reproducible via a seed.
-Both scripts are CLI tools with validated inputs, dataclass configs (no
-magic numbers buried in function bodies), and a pytest suite that
-exercises the actual logic — including a real bug the tests caught and
-fixed during development (see below).
- 
+# 🏎️ Motorsport Analytics & Race Strategy Dashboards
+
+An advanced race strategy analytics toolkit featuring a **Compound Degradation & Pit Strategy Crossover Engine** for optimal pit stop timing and a **Monte Carlo Stint Risk Simulator** for probabilistic traffic and wear risk assessment.
+
 ---
- 
-## 1. Compound Degradation & Pit-Window Optimizer (`tire_strategy.py`)
- 
-**Pace model**, per compound:
- 
-```
-LapTime(lap) = base_time
-             + wear_rate * lap
-             + thermal_factor * thermal_scaling * lap ** thermal_exponent
-```
- 
-`wear_rate` is the linear mechanical component; the thermal term captures
-the "cliff" — degradation that accelerates non-linearly (`thermal_exponent`,
-default 1.5) later in the stint.
- 
-**What's new vs. the original version:**
-- `optimal_pit_lap()` compares *every* candidate pit lap **and** "never
-  pit" against each other, using a real pit-loss constant (seconds lost
-  boxing). The pace crossover lap is still reported, but it's now labeled
-  as a pace signal — pitting exactly on the crossover lap is very often
-  *not* optimal once pit loss is priced in.
-- **A real bug, caught by tests, fixed in this version:** the original
-  optimizer computed a "no-stop total time" for reference but never
-  actually compared it against the best pitting option — so it could
-  recommend pitting even when staying out was faster. `test_optimal_pit_lap_declines_to_pit_when_loss_outweighs_gain`
-  reproduces this and pins the fix.
-- All coefficients (base pace, wear rates, thermal factors, pit loss,
-  race length) are CLI flags, not hardcoded.
-- Input validation: negative wear rates, zero laps, non-positive base
-  times, and negative pit losses all raise `ValueError` instead of
-  silently producing garbage.
-```bash
-python tire_strategy.py                                   # defaults, 25 laps
-python tire_strategy.py --laps 40 --pit-loss 22 --soft-wear 0.12
-```
- 
-Example output (defaults — 22s pit loss, 25-lap race):
-```
-Pace crossover: soft becomes slower than hard at lap 24
-Strategy result: do NOT pit — with a 22.0s pit loss, every pit option
-is at least as slow as running the whole race on soft.
-```
-With a longer race or faster soft degradation, the same optimizer
-correctly recommends pitting:
-```bash
-python tire_strategy.py --laps 40 --soft-wear 0.12 --pit-loss 22
-# Strategy result: box on lap 18 (soft -> hard, 22.0s pit loss)
-#   — saves 22.02s vs. running soft the whole race.
-```
- 
+
+## 🚀 Visual Outputs & System Dashboards
+
+### 1. Compound Degradation & Pit Strategy Crossover (`tire_strategy.py`)
+Models linear wear and exponential thermal degradation for hard vs. soft compounds, automatically identifying the crossover lap.
+![Tire Strategy Crossover Dashboard](output/compound_crossover.png)
+
+### 2. Monte Carlo Stint Risk Spread (`monte_carlo_stint.py`)
+Runs 10,000-iteration probabilistic simulations over a stint to map p50 median expectations against p90 worst-case traffic and wear risk boundaries.
+![Monte Carlo Risk Spread Dashboard](output/monte_carlo_stint.png)
+
 ---
- 
-## 2. Monte Carlo Stint & Traffic Risk Model (`stint_risk_model.py`)
- 
-**What changed vs. the original version:** the original drew a *single*
-random degradation value per simulated race and scaled it by
-`laps ** 1.1` — that's one noisy number per run, not a stint simulation,
-and despite the name it never modeled traffic at all. This version:
- 
-- Simulates **every lap of every run independently** as a `(runs, laps)`
-  numpy array (10,000 runs × 20 laps = 200,000 simulated lap-events).
-- Models **two distinct risk sources**, each independently configurable:
-  1. **Wear noise** — Normal per lap, scaled up over the stint via
-     `wear_exponent` (a tire's pace variance grows as it ages).
-  2. **Traffic** — an independent Bernoulli draw *each lap*
-     (`traffic_prob_per_lap`), with a Lognormal time penalty applied only
-     when the event fires (time losses are strictly positive and
-     right-skewed — most traffic costs a little, rare incidents cost a
-     lot). This is the mechanism the original code's docstring claimed to
-     model but never actually implemented.
-- **Reproducible**: `StintConfig.seed` feeds `numpy.random.default_rng`.
-  Same config → identical output (verified by test); pass `--seed -1` for
-  fresh randomness each run.
-- Reports P10/P50/P90 *and* mean traffic incidents per stint, so the
-  traffic contribution is visible, not just implied.
-```bash
-python stint_risk_model.py
-python stint_risk_model.py --runs 50000 --laps 30 --traffic-prob 0.12
-```
- 
-The resulting histogram now visibly shows a sharp peak for incident-free
-runs plus a right-skewed tail for stints that hit one or more traffic
-events — a qualitatively different (and more honest) distribution shape
-than a single Gaussian.
- 
+
+## 📂 Repository Layout & Core Modules
+
+* **`tire_strategy.py`**: Models linear wear and exponential thermal degradation for hard vs. soft compounds, automatically calculating the exact pit window crossover lap.
+* **`monte_carlo_stint.py`**: Executes 10,000-iteration stochastic simulations over a race stint to map median versus p90 worst-case risk distributions.
+
 ---
- 
-## Repository Layout
- 
-```text
-motorsport-strategy/
-├── tire_strategy.py           # Compound degradation + pit-loss-aware optimizer
-├── stint_risk_model.py        # Lap-by-lap Monte Carlo: wear + traffic
-├── tests/
-│   ├── test_tire_strategy.py      # 10 tests incl. the pit-optimizer bug fix
-│   └── test_stint_risk_model.py   # 8 tests incl. seed reproducibility
-├── output/                    # Generated PNGs (git-ignored in practice)
-├── requirements.txt
-└── README.md
-```
- 
-## Installation & Usage
- 
-```bash
-git clone https://github.com/SmyanAggarwal/motorsport-strategy-dashboards.git
-cd motorsport-strategy-dashboards
-pip install -r requirements.txt
+
+## 📐 Mathematical Foundations & Governing Equations
+
+### 1. Tire Degradation & Crossover Model
+Lap times incorporate base pace, linear mechanical wear, and non-linear thermal degradation:
+
+$$\text{LapTime} = \text{base time} + (\text{wear rate} \cdot \text{lap}) + \left(\text{thermal factor} \cdot \text{lap}^{1.5} \cdot 0.04\right)$$
+
+### 2. Monte Carlo Stint Risk Spread
+Stint variations are sampled from a normal distribution and scaled non-linearly over cumulative race distance:
+
+$$\text{StintTime} = (\text{base lap} \cdot \text{laps}) + \left(\text{deg samples} \cdot \text{laps}^{1.1}\right)$$
+
+---
+
+## 🛠️ Installation & Usage
+
+1. **Clone the repository:**
+   ```bash
+   git clone [https://github.com/SmyanAggarwal/motorsport-strategy-dashboards.git](https://github.com/SmyanAggarwal/motorsport-strategy-dashboards.git)
+   cd motorsport-strategy-dashboards
+
+ pip install numpy pandas matplotlib
 python tire_strategy.py
-python stint_risk_model.py
-pytest tests/ -v
-```
- 
-## Known Limitations (stated explicitly rather than left implicit)
- 
-- Both models are deterministic-pace-plus-noise curve fits, not physics
-  simulations — coefficients are illustrative defaults, not calibrated
-  against real telemetry. Treat them as a strategy-logic sandbox, not a
-  source of real lap-time predictions.
-- The Monte Carlo traffic model treats each lap's incident probability as
-  independent and identically distributed; real traffic risk is
-  correlated with grid position, pace delta to the car ahead, and race
-  phase (denser directly after a start or safety-car restart). A future
-  version could condition `traffic_prob_per_lap` on lap number.
-- `optimal_pit_lap` assumes exactly one pit stop and two compounds; it
-  does not search multi-stop strategies.
- 
+python monte_carlo_stint.py  
  
