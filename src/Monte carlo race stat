@@ -42,7 +42,7 @@ class StintRiskModel:
         plt.close()
 
 if __name__ == "__main__":
-    print("running stint simulation model...")
+    print("running stint simulation model.)
     
     model = StintRiskModel()
     results = model.run_sim()
